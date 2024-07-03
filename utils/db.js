@@ -8,54 +8,52 @@ class DBClient {
 
     const uri = `mongodb://${DB_HOST}:${DB_PORT}/${DB_DATABASE}`;
 
+    this.client = new MongoClient(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    this.connection = null;
+    this.db = null;
+  }
 
-       this.client = new MongoClient(uri, {
-           useNewUrlParser: true,
-	   useUnifiedTopology: true,
-       });
-       this.connection = null;
-       this.db = null;
+  async connect() {
+    try {
+      await this.client.connect();
+      this.connection = this.client.isConnected();
+      this.db = this.client.db(); // Get the database instance
+      console.log('Connected to MongoDB');
+    } catch (err) {
+      console.error('Error connecting to MongoDB:', err);
+      this.connection = false; // Update connection status
+      throw err; // Rethrow the error to propagate it
     }
+  }
 
+  isAlive() {
+    return this.connection;
+  }
 
-    async connect() {
-         try {
-            await this.client.connect();
-            this.connection = this.client.isConnected();
-            this.db = this.client.db(); // Get the database instance
-            console.log('Connected to MongoDB');
-        } catch(err) {
-            console.error('Error connecting to MongoDB:', err);
-	    this.connection = false; // Update connection status
-            throw err; // Rethrow the error to propagate it
-        }   
+  async nbUsers() {
+    try {
+      const collection = this.db.collection('users');
+      const count = await collection.countDocuments();
+      return count;
+    } catch (err) {
+      console.error('Error counting Documents:', err);
+      return -1;
     }
+  }
 
-    isAlive() {
-        return this.connection;
+  async nbFiles() {
+    try {
+      const collection = this.db.collection('files');
+      const count = await collection.countDocuments();
+      return count;
+    } catch (err) {
+      console.error('Error counting Documents:', err);
+      return -1;
     }
-
-    async nbUsers() {
-        try {
-	    const collection = this.db.collection('users');
-	    const count = await collection.countDocuments();
-	    return count;
-	}catch(err) {
-	    console.error("Error counting Documents:", err);
-	    
-	}
-    }
-
-    async nbFiles () {
-        try {
-	    const collection = this.db.collection('files');
-	    const count = await collection.countDocuments();
-	    return count;
-	} catch(error) {
-	    console.error("Error counting Documents:", error);
-	    
-	}
-    }
+  }
 }
 // Create and export an instance of DBClient
 const dbClient = new DBClient();
