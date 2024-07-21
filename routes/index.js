@@ -37,7 +37,7 @@ function routing(app) {
     AuthController.getDisconnect(req, res);
   });
 
-   router.post('/files', (req, res) => {
+  router.post('/files', (req, res) => {
     FilesController.postUpload(req, res);
   });
 
