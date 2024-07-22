@@ -3,7 +3,7 @@ import routing from './routes/index';
 
 const app = express();
 
-const port  = process.env.PORT || 5000;
+const port = process.env.PORT || 5000;
 // middlewar
 app.use(express.json());
 // for routes
