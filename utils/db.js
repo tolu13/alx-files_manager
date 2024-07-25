@@ -1,62 +1,55 @@
 import { MongoClient } from 'mongodb';
 
+const DB_HOST = process.env.DB_HOST || 'localhost';
+const DB_PORT = process.env.DB_PORT || 27017;
+const DB_DATABASE = process.env.DB_DATABASE || 'files_manager';
+const url = `mongodb://${DB_HOST}:${DB_PORT}`;
+
+/**
+ * Class for performing operations with Mongo service
+ */
 class DBClient {
   constructor() {
-    const DB_HOST = process.env.DB_HOST || 'localhost';
-    const DB_PORT = process.env.DB_PORT || '27017';
-    const DB_DATABASE = process.env.DB_DATABASE || 'files_manager';
-
-    const uri = `mongodb://${DB_HOST}:${DB_PORT}/${DB_DATABASE}`;
-
-    this.client = new MongoClient(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+    MongoClient.connect(url, { useUnifiedTopology: true }, (err, client) => {
+      if (!err) {
+        // console.log('Connected successfully to server');
+        this.db = client.db(DB_DATABASE);
+        this.usersCollection = this.db.collection('users');
+        this.filesCollection = this.db.collection('files');
+      } else {
+        console.log(err.message);
+        this.db = false;
+      }
     });
-    this.connection = null;
-    this.db = null;
   }
 
-  async connect() {
-    try {
-      await this.client.connect();
-      this.connection = this.client.isConnected();
-      this.db = this.client.db(); // Get the database instance
-      console.log('Connected to MongoDB');
-    } catch (err) {
-      console.error('Error connecting to MongoDB:', err);
-      this.connection = false; // Update connection status
-      throw err; // Rethrow the error to propagate it
-    }
-  }
-
+  /**
+   * Checks if connection to Redis is Alive
+   * @return {boolean} true if connection alive or false if not
+   */
   isAlive() {
-    return this.connection;
+    return Boolean(this.db);
   }
 
+  /**
+   * Returns the number of documents in the collection users
+   * @return {number} amount of users
+   */
   async nbUsers() {
-    try {
-      const collection = this.db.collection('users');
-      const count = await collection.countDocuments();
-      return count;
-    } catch (err) {
-      console.error('Error counting Documents:', err);
-      return -1;
-    }
+    const numberOfUsers = this.usersCollection.countDocuments();
+    return numberOfUsers;
   }
 
+  /**
+   * Returns the number of documents in the collection files
+   * @return {number} amount of files
+   */
   async nbFiles() {
-    try {
-      const collection = this.db.collection('files');
-      const count = await collection.countDocuments();
-      return count;
-    } catch (err) {
-      console.error('Error counting Documents:', err);
-      return -1;
-    }
+    const numberOfFiles = this.filesCollection.countDocuments();
+    return numberOfFiles;
   }
 }
-// Create and export an instance of DBClient
+
 const dbClient = new DBClient();
-dbClient.connect(); // Connect immediately upon creation
 
 export default dbClient;
