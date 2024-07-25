@@ -70,3 +70,5 @@ class AuthController {
     return response.status(204).send();
   }
 }
+
+export default AuthController;
